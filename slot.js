@@ -10,15 +10,34 @@
   const STRIP_LEN = 21;
   const SHARE_URL = 'https://maxtakaharu34-cmd.github.io/tencho-slot/';
 
-  // Symbol IDs and their visual style
+  // Symbol IDs and their visual style. `src` is loaded as an Image and drawn onto the reel.
   const SYMBOLS = {
-    '7':    { label: '7',  bg: '#ffe100', fg: '#e8133a', font: 'bold 64px "Mochiy Pop P One", serif' },
-    'BAR':  { label: '★',  bg: '#3a0080', fg: '#fff',    font: 'bold 60px serif', rainbow: true },
-    'BELL': { label: '🔔', bg: '#ff8c00', fg: '#fff',    font: '54px serif' },
-    'WMN':  { label: '🍉', bg: '#0d8f33', fg: '#fff',    font: '54px serif' },
-    'CHE':  { label: '🍒', bg: '#c11d1d', fg: '#fff',    font: '54px serif' },
-    'REP':  { label: '⟳',  bg: '#1da1f2', fg: '#fff',    font: 'bold 60px sans-serif' },
-    'BLK':  { label: '',   bg: '#1a0030', fg: '#fff',    font: '40px sans-serif' }
+    '7':    { src: 'assets/symbols/7.png',          bg: '#ffe100' },
+    'BAR':  { src: 'assets/symbols/bar.png',        bg: '#3a0080', rainbow: true },
+    'BELL': { src: 'assets/symbols/bell.png',       bg: '#ff8c00' },
+    'WMN':  { src: 'assets/symbols/watermelon.png', bg: '#0d8f33' },
+    'CHE':  { src: 'assets/symbols/cherry.png',     bg: '#c11d1d' },
+    'REP':  { src: 'assets/symbols/replay.png',     bg: '#1da1f2' },
+    'BLK':  { src: null,                            bg: '#1a0030' }
+  };
+
+  // Preload symbol images
+  const symbolImages = {};
+  function preloadSymbols() {
+    Object.entries(SYMBOLS).forEach(([key, def]) => {
+      if (!def.src) return;
+      const img = new Image();
+      img.src = def.src;
+      symbolImages[key] = img;
+    });
+  }
+
+  // Mode badge icons (loaded lazily into <img> in DOM)
+  const MODE_ICONS = {
+    cz: 'assets/mode/cz_galaxy.png',
+    at: 'assets/mode/at_star.png',
+    revival: 'assets/mode/revival_orb.png',
+    upperAt: 'assets/mode/crown.png'
   };
 
   const REEL_STRIPS = [
@@ -171,7 +190,8 @@
       isMuted: () => muted
     };
   })();
-  btnMute.textContent = Sound.isMuted() ? '🔇' : '🔊';
+  const imgMute = document.getElementById('img-mute');
+  imgMute.src = Sound.isMuted() ? 'assets/ui/mute_off.png' : 'assets/ui/mute_on.png';
 
   // ==================== State ====================
   const state = {
@@ -223,6 +243,7 @@
   function drawSymbol(x, y, w, h, sym, opts = {}) {
     const def = SYMBOLS[sym] || SYMBOLS['BLK'];
     ctx.save();
+    // Background tile
     if (opts.rainbow || (def.rainbow && opts.shine)) {
       const t = (performance.now() / 200) % 1;
       const grad = ctx.createLinearGradient(x, y, x + w, y + h);
@@ -236,39 +257,18 @@
       ctx.fillStyle = def.bg;
     }
     ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+    // Top highlight
     ctx.fillStyle = 'rgba(255,255,255,0.10)';
     ctx.fillRect(x + 1, y + 1, w - 2, h * 0.25);
+    // Outline
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 2;
     ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
-    if (def.label) {
-      ctx.font = def.font;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const cx = x + w / 2;
-      const cy = y + h / 2 + 2;
-      if (sym === '7') {
-        ctx.lineWidth = 6;
-        ctx.strokeStyle = '#000';
-        ctx.strokeText('7', cx, cy);
-        ctx.fillStyle = '#e8133a';
-        ctx.fillText('7', cx, cy);
-      } else if (sym === 'BAR') {
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = '#fff';
-        ctx.strokeText('☆', cx, cy);
-        ctx.fillStyle = '#ff66ff';
-        ctx.fillText('☆', cx, cy);
-      } else if (sym === 'REP') {
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = '#000';
-        ctx.strokeText('⟳', cx, cy);
-        ctx.fillStyle = '#fff';
-        ctx.fillText('⟳', cx, cy);
-      } else {
-        ctx.fillStyle = def.fg;
-        ctx.fillText(def.label, cx, cy);
-      }
+    // Symbol image (centered, with small padding)
+    const img = symbolImages[sym];
+    if (img && img.complete && img.naturalWidth) {
+      const pad = Math.min(w, h) * 0.08;
+      ctx.drawImage(img, x + pad, y + pad, w - pad * 2, h - pad * 2);
     }
     ctx.restore();
   }
@@ -792,42 +792,52 @@
   }
 
   // ==================== Status / mode bar ====================
+  function setModeName(iconKey, label) {
+    while (modeNameEl.firstChild) modeNameEl.removeChild(modeNameEl.firstChild);
+    if (iconKey && MODE_ICONS[iconKey]) {
+      const img = document.createElement('img');
+      img.src = MODE_ICONS[iconKey];
+      img.alt = '';
+      img.className = 'mode-icon-img';
+      modeNameEl.appendChild(img);
+    }
+    modeNameEl.appendChild(document.createTextNode(label));
+  }
+
   function updateStatus() {
     medalEl.textContent = state.medal;
     gamesEl.textContent = state.games;
     const diff = state.medal - state.initialMedal;
     diffEl.textContent = (diff >= 0 ? '+' : '') + diff;
     modeNameEl.classList.remove('cz', 'at', 'upper-at');
-    let name = '通常';
     let counter = '';
     let extra = '';
     switch (state.mode) {
       case 'cz':
-        name = '🌌 暗黒星雲CHANCE';
+        setModeName('cz', '暗黒星雲CHANCE');
         counter = `押順BELL ${state.czPushBellHits}/10`;
         modeNameEl.classList.add('cz');
         break;
       case 'at':
-        name = '⭐ 暗黒星雲MODE';
+        setModeName('at', '暗黒星雲MODE');
         counter = `残${state.atRemainingG}G`;
         modeNameEl.classList.add('at');
         break;
       case 'revival':
-        name = '🔮 復活CHANCE';
+        setModeName('revival', '復活CHANCE');
         counter = `残${state.revivalRemainingG}G`;
         modeNameEl.classList.add('cz');
         break;
       case 'upperAt':
-        name = '👑 超闇暗黒星雲MODE';
+        setModeName('upperAt', '超闇暗黒星雲MODE');
         counter = `残${state.atRemainingG}G`;
         modeNameEl.classList.add('upper-at');
         extra = '転落抽選中';
         break;
       default:
-        name = '通常';
+        setModeName(null, '通常');
         counter = '';
     }
-    modeNameEl.textContent = name;
     modeCounterEl.textContent = counter;
     modeExtraEl.textContent = extra;
   }
@@ -840,7 +850,7 @@
   });
   btnMute.addEventListener('click', () => {
     const m = Sound.toggleMute();
-    btnMute.textContent = m ? '🔇' : '🔊';
+    imgMute.src = m ? 'assets/ui/mute_off.png' : 'assets/ui/mute_on.png';
   });
   btnRestart.addEventListener('click', () => {
     if (!confirm('リスタートしますか？（メダルがリセットされます）')) return;
@@ -915,6 +925,7 @@
   }
 
   // ==================== Init ====================
+  preloadSymbols();
   resizeCanvas();
   drawReels();
   if (document.fonts && document.fonts.ready) {

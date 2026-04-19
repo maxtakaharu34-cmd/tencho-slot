@@ -427,13 +427,22 @@
   function drawReels() {
     const W = cw(), H = ch();
     const sH = symH();
-    const rW = reelW();
+    // Integer column widths, last column absorbs the remainder so nothing gets cut off on the right.
+    const usable = W - REEL_PAD_X * 2;
+    const baseColW = Math.floor(usable / REEL_COUNT);
+    const lastColW = usable - baseColW * (REEL_COUNT - 1);
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = '#050010';
     ctx.fillRect(0, 0, W, H);
+    // Clip everything to the canvas bounds so any symbol can't bleed past
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, W, H);
+    ctx.clip();
     for (let r = 0; r < REEL_COUNT; r++) {
       const reel = state.reels[r];
-      const x = REEL_PAD_X + r * rW;
+      const x = REEL_PAD_X + r * baseColW;
+      const rW = (r === REEL_COUNT - 1) ? lastColW : baseColW;
       ctx.fillStyle = '#000';
       ctx.fillRect(x, 0, rW, H);
       const stripPx = STRIP_LEN * sH;
@@ -441,16 +450,23 @@
       const topSymFloat = wrapped / sH;
       const topIdx = Math.floor(topSymFloat);
       const yOffset = -(topSymFloat - topIdx) * sH;
+      // Clip each reel column so symbol rendering cannot overflow horizontally
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x, 0, rW, H);
+      ctx.clip();
       for (let i = -1; i < VISIBLE_ROWS + 1; i++) {
         const stripIndex = topIdx + i;
         const sym = symAt(r, stripIndex);
         const y = yOffset + i * sH;
         drawSymbol(x, y, rW, sH, sym, { shine: state.mode === 'upperAt' });
       }
+      ctx.restore();
       ctx.strokeStyle = '#330055';
       ctx.lineWidth = 1;
       ctx.strokeRect(x + 0.5, 0.5, rW - 1, H - 1);
     }
+    ctx.restore();
     ctx.strokeStyle = 'rgba(255,255,255,0.15)';
     ctx.beginPath();
     ctx.moveTo(0, sH);

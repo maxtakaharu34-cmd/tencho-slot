@@ -626,12 +626,12 @@
     const reel = state.reels[r];
     const sH = symH();
     const stripPx = STRIP_LEN * sH;
+    // Ensure target lands exactly on the payline (middle row) — NO fractional slip.
     const desiredMod = ((reel.targetIndex - 1) * sH);
     const curMod = ((reel.pos % stripPx) + stripPx) % stripPx;
     let delta = (desiredMod - curMod + stripPx) % stripPx;
     if (delta < sH * 0.5) delta += stripPx;
-    const slipExtra = sH * (Math.random() * 0.6);
-    const finalDelta = delta + slipExtra;
+    const finalDelta = delta;
     const dur = 220 + Math.random() * 120;
     const startPos = reel.pos;
     const startTs = performance.now();
@@ -647,7 +647,9 @@
       } else {
         reel.spinning = false;
         reel.stopAnim = null;
-        reel.pos = startPos + finalDelta;
+        // Snap exactly to desired alignment — eliminates any floating-point drift
+        // so that matching symbols line up cleanly on the payline.
+        reel.pos = desiredMod;
         state.stoppedCount++;
         stopBtns[r].disabled = true;
         const middleSym = symAt(r, reel.targetIndex);
@@ -674,10 +676,12 @@
         Sound.replay();
         state.lastWasReplay = true;
         state.medal += 3; // refund the bet
+        flashPayline('#4da6ff');
         break;
       case 'bell':
         Sound.bell();
         payout = PAYOUT.bell;
+        flashPayline('#ffe100');
         break;
       case 'pushBell': {
         const inAT = state.mode === 'at' || state.mode === 'upperAt';
@@ -685,6 +689,7 @@
           if (state.pushOrderHit) {
             payout = inAT ? PAYOUT.pushBellAT : PAYOUT.pushBellNormal;
             Sound.bell();
+            flashPayline('#ffe100');
           } else {
             payout = PAYOUT.pushBellMiss;
             Sound.stop();
@@ -692,32 +697,39 @@
         } else {
           payout = PAYOUT.pushBellNormal;
           Sound.bell();
+          flashPayline('#ffe100');
         }
         break;
       }
       case 'suika':
         Sound.suika();
         payout = PAYOUT.suika;
+        flashPayline('#4dff4d');
         break;
       case 'cherry':
         Sound.cherry();
         payout = PAYOUT.cherry;
+        flashPayline('#ff4d4d');
         break;
       case 'seven':
         Sound.cz();
         flashFrame('#ffe100');
+        flashPayline('#ffe100');
         break;
       case 'one':
         Sound.cz();
         flashFrame('#ff4d4d');
+        flashPayline('#ff4d4d');
         break;
       case 'three':
         Sound.cz();
         flashFrame('#4da6ff');
+        flashPayline('#4da6ff');
         break;
       case 'five':
         Sound.cz();
         flashFrame('#4dff4d');
+        flashPayline('#4dff4d');
         break;
       case 'special':
         // handled in freeze sequence
@@ -1085,6 +1097,39 @@
     fctx.fillRect(0, 0, cw(), ch());
     fctx.restore();
     setTimeout(() => fctx.clearRect(0, 0, cw(), ch()), 80);
+  }
+
+  // Highlight the payline (middle row) in the given color to emphasize a hit.
+  function flashPayline(color) {
+    const W = cw(), H = ch();
+    const sH = symH();
+    const start = performance.now();
+    const dur = 650;
+    function step() {
+      const t = (performance.now() - start) / dur;
+      if (t >= 1) {
+        fctx.clearRect(0, 0, W, H);
+        return;
+      }
+      fctx.clearRect(0, 0, W, H);
+      // Pulsating overlay on the middle row
+      fctx.save();
+      fctx.globalAlpha = 0.35 * (1 - t) * (0.6 + 0.4 * Math.sin(t * Math.PI * 6));
+      fctx.fillStyle = color;
+      fctx.fillRect(0, sH, W, sH);
+      fctx.restore();
+      // Bright border around each aligned cell
+      fctx.save();
+      fctx.globalAlpha = (1 - t);
+      fctx.strokeStyle = color;
+      fctx.lineWidth = 5;
+      fctx.shadowColor = color;
+      fctx.shadowBlur = 18;
+      fctx.strokeRect(4, sH + 4, W - 8, sH - 8);
+      fctx.restore();
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
   }
 
   function spawnFloater(text, kind = 'gain') {

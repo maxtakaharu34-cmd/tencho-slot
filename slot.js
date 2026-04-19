@@ -10,22 +10,26 @@
   const STRIP_LEN = 24;
   const SHARE_URL = 'https://maxtakaharu34-cmd.github.io/tencho-slot/';
 
+  // Cache-buster version; bump this whenever an image asset is updated
+  // so browsers fetch the new file instead of serving stale cache.
+  const ASSET_V = 'v3';
+
   // Symbol IDs and their visual style. `src` is loaded as an Image and drawn onto the reel.
   // `fallback` provides a text-drawing fallback when the image is missing (so the
   // game still looks right until a png is dropped into assets/symbols/).
   const SYMBOLS = {
-    '7':      { src: 'assets/symbols/7.png',          bg: '#ffe100', fallback: { text: '7',   color: '#e8133a', stroke: '#000', font: 'bold 72px "Mochiy Pop P One", serif' } },
-    'BAR':    { src: 'assets/symbols/bar.png',        bg: '#3a0080', rainbow: true, fallback: { text: '★', color: '#ff66ff', stroke: '#fff', font: 'bold 60px serif' } },
-    'BELL':   { src: 'assets/symbols/bell.png',       bg: '#ff8c00', fallback: { text: '🔔', color: '#fff',     stroke: '#000', font: '54px serif' } },
-    'WMN':    { src: 'assets/symbols/watermelon.png', bg: '#0d8f33', fallback: { text: '🍉', color: '#fff',     stroke: '#000', font: '54px serif' } },
-    'CHE':    { src: 'assets/symbols/cherry.png',     bg: '#c11d1d', fallback: { text: '🍒', color: '#fff',     stroke: '#000', font: '54px serif' } },
-    'REP':    { src: 'assets/symbols/replay.png',     bg: '#1da1f2', fallback: { text: '⟳',  color: '#fff',     stroke: '#000', font: 'bold 60px sans-serif' } },
-    'ONE':    { src: 'assets/symbols/one.png',        bg: '#ff4d4d', fallback: { text: '1',  color: '#fff',     stroke: '#000', font: 'bold 72px "Mochiy Pop P One", serif' } },
-    'THREE':  { src: 'assets/symbols/three.png',      bg: '#4da6ff', fallback: { text: '3',  color: '#fff',     stroke: '#000', font: 'bold 72px "Mochiy Pop P One", serif' } },
-    'FIVE':   { src: 'assets/symbols/five.png',       bg: '#4dff4d', fallback: { text: '5',  color: '#000',     stroke: '#fff', font: 'bold 72px "Mochiy Pop P One", serif' } },
-    'PIERROT':{ src: 'assets/symbols/pierrot.png',    bg: '#8b1aff', fallback: { text: '🃏', color: '#fff',     stroke: '#000', font: '54px serif' } },
-    'GOLD':   { src: 'assets/symbols/gold.png',       bg: '#ffd700', fallback: { text: 'G',  color: '#8b6508',  stroke: '#000', font: 'bold 60px serif' } },
-    'BLK':    { src: null,                            bg: '#1a0030' }
+    '7':      { src: `assets/symbols/7.png?${ASSET_V}`,          bg: '#ffe100', fallback: { text: '7',   color: '#e8133a', stroke: '#000', font: 'bold 72px "Mochiy Pop P One", serif' } },
+    'BAR':    { src: `assets/symbols/bar.png?${ASSET_V}`,        bg: '#3a0080', rainbow: true, fallback: { text: '★', color: '#ff66ff', stroke: '#fff', font: 'bold 60px serif' } },
+    'BELL':   { src: `assets/symbols/bell.png?${ASSET_V}`,       bg: '#ff8c00', fallback: { text: '🔔', color: '#fff',     stroke: '#000', font: '54px serif' } },
+    'WMN':    { src: `assets/symbols/watermelon.png?${ASSET_V}`, bg: '#0d8f33', fallback: { text: '🍉', color: '#fff',     stroke: '#000', font: '54px serif' } },
+    'CHE':    { src: `assets/symbols/cherry.png?${ASSET_V}`,     bg: '#c11d1d', fallback: { text: '🍒', color: '#fff',     stroke: '#000', font: '54px serif' } },
+    'REP':    { src: `assets/symbols/replay.png?${ASSET_V}`,     bg: '#1da1f2', fallback: { text: '⟳',  color: '#fff',     stroke: '#000', font: 'bold 60px sans-serif' } },
+    'ONE':    { src: `assets/symbols/one.png?${ASSET_V}`,        bg: '#ff4d4d', fallback: { text: '1',  color: '#fff',     stroke: '#000', font: 'bold 72px "Mochiy Pop P One", serif' } },
+    'THREE':  { src: `assets/symbols/three.png?${ASSET_V}`,      bg: '#4da6ff', fallback: { text: '3',  color: '#fff',     stroke: '#000', font: 'bold 72px "Mochiy Pop P One", serif' } },
+    'FIVE':   { src: `assets/symbols/five.png?${ASSET_V}`,       bg: '#4dff4d', fallback: { text: '5',  color: '#000',     stroke: '#fff', font: 'bold 72px "Mochiy Pop P One", serif' } },
+    'PIERROT':{ src: `assets/symbols/pierrot.png?${ASSET_V}`,    bg: '#8b1aff', fallback: { text: '🃏', color: '#fff',     stroke: '#000', font: '54px serif' } },
+    'GOLD':   { src: `assets/symbols/gold.png?${ASSET_V}`,       bg: '#ffd700', fallback: { text: 'G',  color: '#8b6508',  stroke: '#000', font: 'bold 60px serif' } },
+    'BLK':    { src: null,                                        bg: '#1a0030' }
   };
 
   // Preload symbol images
@@ -41,10 +45,10 @@
 
   // Mode badge icons (loaded lazily into <img> in DOM)
   const MODE_ICONS = {
-    cz: 'assets/mode/cz_galaxy.png',
-    at: 'assets/mode/at_star.png',
-    revival: 'assets/mode/revival_orb.png',
-    upperAt: 'assets/mode/crown.png'
+    cz: `assets/mode/cz_galaxy.png?${ASSET_V}`,
+    at: `assets/mode/at_star.png?${ASSET_V}`,
+    revival: `assets/mode/revival_orb.png?${ASSET_V}`,
+    upperAt: `assets/mode/crown.png?${ASSET_V}`
   };
 
   // 24-slot strips with god-pattern numbers + pierrot + gold inserted into gaps.
@@ -322,7 +326,7 @@
     bgmTimer = setInterval(scheduleStep, stepSec * 1000);
   }
   const imgMute = document.getElementById('img-mute');
-  imgMute.src = Sound.isMuted() ? 'assets/ui/mute_off.png' : 'assets/ui/mute_on.png';
+  imgMute.src = Sound.isMuted() ? `assets/ui/mute_off.png?${ASSET_V}` : `assets/ui/mute_on.png?${ASSET_V}`;
 
   // ==================== State ====================
   const state = {
@@ -1239,7 +1243,7 @@
   });
   btnMute.addEventListener('click', () => {
     const m = Sound.toggleMute();
-    imgMute.src = m ? 'assets/ui/mute_off.png' : 'assets/ui/mute_on.png';
+    imgMute.src = m ? `assets/ui/mute_off.png?${ASSET_V}` : `assets/ui/mute_on.png?${ASSET_V}`;
   });
   btnRestart.addEventListener('click', () => {
     if (!confirm('リスタートしますか？（メダルがリセットされます）')) return;

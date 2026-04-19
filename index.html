@@ -11,6 +11,18 @@
       href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&family=Noto+Sans+JP:wght@500;700;900&display=swap"
       rel="stylesheet"
     />
+    <!-- Preload reel symbols so the very first paint uses the current assets -->
+    <link rel="preload" as="image" href="assets/symbols/7.png?v3" />
+    <link rel="preload" as="image" href="assets/symbols/bar.png?v3" />
+    <link rel="preload" as="image" href="assets/symbols/bell.png?v3" />
+    <link rel="preload" as="image" href="assets/symbols/watermelon.png?v3" />
+    <link rel="preload" as="image" href="assets/symbols/cherry.png?v3" />
+    <link rel="preload" as="image" href="assets/symbols/replay.png?v3" />
+    <link rel="preload" as="image" href="assets/symbols/one.png?v3" />
+    <link rel="preload" as="image" href="assets/symbols/three.png?v3" />
+    <link rel="preload" as="image" href="assets/symbols/five.png?v3" />
+    <link rel="preload" as="image" href="assets/symbols/pierrot.png?v3" />
+    <link rel="preload" as="image" href="assets/symbols/gold.png?v3" />
     <style>
       :root {
         --red: #e8133a;
@@ -729,9 +741,9 @@
       <header>
         <h1 class="title">てんちょースロット<span class="dot">！</span></h1>
         <div class="top-buttons">
-          <button id="btn-mute" class="icon-btn" aria-label="mute"><img id="img-mute" src="assets/ui/mute_on.png" alt="mute" /></button>
-          <button id="btn-share" class="icon-btn" aria-label="share"><img src="assets/ui/share.png" alt="share" /></button>
-          <button id="btn-restart" class="icon-btn" aria-label="restart"><img src="assets/ui/restart.png" alt="restart" /></button>
+          <button id="btn-mute" class="icon-btn" aria-label="mute"><img id="img-mute" src="assets/ui/mute_on.png?v3" alt="mute" /></button>
+          <button id="btn-share" class="icon-btn" aria-label="share"><img src="assets/ui/share.png?v3" alt="share" /></button>
+          <button id="btn-restart" class="icon-btn" aria-label="restart"><img src="assets/ui/restart.png?v3" alt="restart" /></button>
         </div>
       </header>
 
@@ -795,7 +807,7 @@
         <p>本格パチスロ風 / フリーズ目指せ！</p>
         <p style="font-size: 11px; opacity: 0.7;">レバー: Space ／ STOP: Z X C</p>
         <div class="actions">
-          <button class="btn-start" id="btn-start"><img src="assets/ui/play.png" alt="" /> START</button>
+          <button class="btn-start" id="btn-start"><img src="assets/ui/play.png?v3" alt="" /> START</button>
         </div>
       </div>
     </div>

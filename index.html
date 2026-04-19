@@ -185,8 +185,11 @@
           0 0 30px rgba(255, 225, 0, 0.4);
         padding: 8px;
         max-height: 100%;
-        max-width: 100%;
+        max-width: min(96vw, 620px);
+        width: 100%;
+        margin: 0 auto;
         aspect-ratio: 360 / 320;
+        overflow: hidden;
       }
       canvas#reels {
         display: block;
